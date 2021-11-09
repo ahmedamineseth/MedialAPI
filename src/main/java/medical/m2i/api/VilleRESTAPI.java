@@ -7,6 +7,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
 
 @Path("/ville")
@@ -23,12 +24,20 @@ public class VilleRESTAPI {
         return p;
     }
 
+    private VilleEntity getVille( int id ){
+        VilleEntity v = em.find(VilleEntity.class , id);
+        if(  v == null ){
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        }
+        return v;
+    }
+
     //ville/1
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
-    public VilleEntity getOne( @PathParam("id") int id ){
-        return em.find(VilleEntity.class , id);
+    public VilleEntity getOne( @PathParam("id") int id ) throws Exception {
+        return getVille(id);
     }
 
     @POST
@@ -47,6 +56,52 @@ public class VilleRESTAPI {
         } finally {
             // em.close();
             // emf.close();
+        }
+    }
+
+    @DELETE
+    @Path("/{id}")
+    public void deleteVille( @PathParam("id") int id  ){
+
+        EntityTransaction tx = em.getTransaction();
+        // Début des modifications
+        try {
+            tx.begin();
+            em.remove( getVille(id) );
+            tx.commit();
+        // }catch ( IllegalArgumentException e ){
+        //    throw new WebApplicationException(Response.Status.NOT_FOUND); // sol 2
+        } catch (Exception e) {
+            tx.rollback();
+            System.out.println("Exception " + e.getMessage() );
+            throw e;
+        }
+    }
+
+    @PUT
+    @Path("/{id}")
+    @Consumes( MediaType.APPLICATION_JSON )
+    public void updateVille( @PathParam("id") int id , VilleEntity vparam ){
+
+        VilleEntity v = getVille(id);
+
+        v.setNom( vparam.getNom() );
+        v.setCodePostal( vparam.getCodePostal() );
+        v.setPays( vparam.getPays() );
+
+
+        EntityTransaction tx = em.getTransaction();
+        // Début des modifications
+        try {
+            tx.begin();
+            em.persist( v );
+            tx.commit();
+            // }catch ( IllegalArgumentException e ){
+            //    throw new WebApplicationException(Response.Status.NOT_FOUND); // sol 2
+        } catch (Exception e) {
+            tx.rollback();
+            System.out.println("Exception " + e.getMessage() );
+            throw e;
         }
     }
 }
