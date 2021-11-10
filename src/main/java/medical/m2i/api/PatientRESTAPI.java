@@ -2,6 +2,8 @@ package medical.m2i.api;
 
 import entities.PatientEntity;
 import entities.PatientEntity;
+import entities.PatientEntity;
+import entities.VilleEntity;
 import medical.m2i.dao.DbConnection;
 
 import javax.persistence.EntityManager;
@@ -22,8 +24,18 @@ public class PatientRESTAPI {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("")
-    public List<PatientEntity> getAll(){
-        List<PatientEntity> p = em.createNativeQuery("SELECT * FROM patient", PatientEntity.class).getResultList();
+    public List<PatientEntity> getAll( @QueryParam("nom") String pnom ){
+        //List<PatientEntity> p = em.createNativeQuery("SELECT * FROM patient", PatientEntity.class).getResultList();
+        List<PatientEntity> p = null;
+
+        System.out.println( "nom passé en param = " + pnom );
+
+        if( pnom == null || pnom.length() == 0  ){
+            p = em.createNamedQuery("patient.findAll" ).getResultList();
+        }else{
+            p = em.createNamedQuery("patient.findAllByNom" ).setParameter("nom" , "%"+pnom+"%").getResultList();
+        }
+
         return p;
     }
 
@@ -79,5 +91,42 @@ public class PatientRESTAPI {
             System.out.println("Exception " + e.getMessage() );
             throw e;
         }
+    }
+
+    @PUT
+    @Path("/{id}")
+    @Consumes( MediaType.APPLICATION_JSON )
+    public void updatePatient( @PathParam("id") int id , PatientEntity pparam ){
+
+        PatientEntity p = getPatient(id);
+
+        p.setPrenom( pparam.getPrenom() );
+        p.setNom( pparam.getNom() );
+        p.setAdresse( pparam.getAdresse() );
+        p.setDatenaissance( pparam.getDatenaissance() );
+
+        //p.setVille(pparam.getVille() );
+
+        VilleEntity v = em.find( VilleEntity.class , pparam.getVille().getId() );
+        if(  v == null ){
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }
+        p.setVille( v );
+
+        EntityTransaction tx = em.getTransaction();
+        // Début des modifications
+        try {
+            tx.begin();
+            em.persist( p );
+            tx.commit();
+            // }catch ( IllegalArgumentException e ){
+            //    throw new WebApplicationException(Response.Status.NOT_FOUND); // sol 2
+        } catch (Exception e) {
+            tx.rollback();
+            System.out.println("Exception " + e.getMessage() );
+            throw e;
+        }
+
+        //em.refresh( p );
     }
 }

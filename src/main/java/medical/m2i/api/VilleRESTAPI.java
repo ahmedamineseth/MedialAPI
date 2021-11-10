@@ -19,7 +19,7 @@ public class VilleRESTAPI {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("")
-    public List<VilleEntity> getAll(){
+    public List<VilleEntity> getAll( @QueryParam("nom") String pnom ){
         List<VilleEntity> p = em.createNativeQuery("SELECT * FROM ville", VilleEntity.class).getResultList();
         return p;
     }

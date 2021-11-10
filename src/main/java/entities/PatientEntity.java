@@ -5,6 +5,11 @@ import java.sql.Date;
 
 @Entity
 @Table(name = "patient", schema = "medical5", catalog = "")
+@NamedQueries( {
+        @NamedQuery( name="patient.findAll" , query = "SELECT p FROM PatientEntity p"),
+        @NamedQuery( name="patient.findAllByNom" , query = "SELECT p FROM PatientEntity p WHERE nom like :nom")
+})
+
 public class PatientEntity {
     private int id;
     private String nom;
