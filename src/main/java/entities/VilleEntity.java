@@ -4,6 +4,10 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "ville", schema = "medical5", catalog = "")
+@NamedQueries( {
+        @NamedQuery( name="ville.findAll" , query = "SELECT v FROM VilleEntity v"),
+        @NamedQuery( name="ville.findAllByNom" , query = "SELECT v FROM VilleEntity v WHERE nom like :nom")
+})
 public class VilleEntity {
     private int id;
     private String nom;
